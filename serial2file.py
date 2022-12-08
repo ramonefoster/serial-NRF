@@ -2,6 +2,7 @@ import serial
 import serial.tools.list_ports
 import threading
 import datetime
+import time
 
 class ReadSerial(threading.Thread):
     def __init__(self, porta, baud):  
@@ -9,7 +10,9 @@ class ReadSerial(threading.Thread):
         """  
         self.control_var = ""
         self.receiving_flag = False  
-        self.close_var = False        
+        self.byte_size = 0
+        self.close_var = False  
+        self.txt_error = ""      
         self.ser = serial.Serial(
             port=porta,
             baudrate=baud,
@@ -20,30 +23,55 @@ class ReadSerial(threading.Thread):
         self.ser.close()
         if self.ser.is_open == False:
             try:
-                print("Openning RX-Indexer port")
                 self.ser.open()
                 self.ser.reset_input_buffer()
                 self.ser.reset_output_buffer()
                 self.port_name = self.ser.name
             except Exception as e:
                 print(e)
-            self.t_thread = threading.Thread(target = self.read)
-            self.t_thread.start()
+        self.t_thread = threading.Thread(target = self.read)
+        self.t_thread.start()
+    
+    def start(self):
+        """Start threar que re em loop a COM"""
+        if self.ser.is_open == False:
+            try:
+                self.ser.open()
+                self.ser.reset_input_buffer()
+                self.ser.reset_output_buffer()
+                self.port_name = self.ser.name
+            except Exception as e:
+                self.txt_error = str(e) 
+            else:
+                self.txt_error = ""    
     
     def read(self):
         while (True):
             if self.close_var:
                 break
             data_str = ''
-            resp = self.ser.in_waiting
+            try:
+                resp = self.ser.in_waiting
+            except Exception as e:
+                #tenta reabrir COM  
+                self.ser.close()  
+                self.start()
+                time.sleep(5)
+                self.txt_error = str(e)
+            else:
+                self.txt_error = ""
             if (resp > 0): 
+                print(self.receiving_flag)
                 self.receiving_flag = True  
                 self.byte_size = resp              
                 while(not '\n' in data_str):     
                     try:             
                         data_str += self.ser.read().decode()                        
                     except Exception as e:
-                        print(str(e))
+                        self.ser.flush()
+                        self.txt_error = str(e)
+                    else:
+                        self.txt_error = ""
                 x = data_str.split("\t")
                 if self.control_var != x[3:8] and len(x)>3:
                     self.control_var = x[3:8]
@@ -62,10 +90,11 @@ class ReadSerial(threading.Thread):
             else:
                 self.receiving_flag = False
                 self.byte_size = 0
+            time.sleep(.003)
     
     def receiving_status(self):
         """Retorna o status da flag de recebimento e numero de bytes"""
-        return (self.receiving_flag, self.byte_size)
+        return (self.receiving_flag, self.byte_size, self.txt_error)
     
     def close_port(self):
         """Fecha a porta COM e reseta as flags"""

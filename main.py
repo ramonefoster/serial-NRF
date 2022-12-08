@@ -79,7 +79,7 @@ class MyApp(QtWidgets.QMainWindow, Ui_MainWindow):
         """Verifica se existe dados na serial e plota via progressbar
         o numero de bytes e indica que está recebendo"""
         if self.com_var:
-            stat, size = self.com_var.receiving_status()
+            stat, size, error = self.com_var.receiving_status()
             #UI elements 
             if stat:
                 self.progressBar.setFormat(f'{size} Bytes')
@@ -88,7 +88,11 @@ class MyApp(QtWidgets.QMainWindow, Ui_MainWindow):
             else:
                 self.progressBar.setFormat(f'0 Bytes')
                 self.progressBar.setValue(0)
-    
+            if error:
+                self.txtError.setText(error)
+            else: 
+                self.txtError.setText("")
+
     def closeEvent(self, event):
         """Fecha o programa"""
         if self.status:
@@ -98,7 +102,7 @@ class MyApp(QtWidgets.QMainWindow, Ui_MainWindow):
     def start_timer(self):
         self.timer_update.timeout.connect(self.receiving_status)
         self.timer_update.stop()
-        self.timer_update.start(100)   
+        self.timer_update.start(50)   
     
 if __name__ == "__main__":
     app = QtWidgets.QApplication(sys.argv)
