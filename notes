@@ -1,0 +1,39 @@
+# Criar ambiente virtual para criar o executavel
+>> python -m venv nome_env
+
+# Para entrar no ambiente virtual, usar no prompt
+>> call name_env\Scripts\activate.bat
+
+# instalar o Pyinstaller e as demais bibliotecas/packages (PyQt5, pyserial, por exemplo)
+
+# Para rodar/testar o codigo:
+>> python main.py
+
+# Criar Executavel:
+# Dentro do ambiente virtual:
+>> pyi-makespec --noconsole --onefile arquivo_principal.py
+
+# Isso criará um arquivo .spec de criação do executavel.
+# Neste arquivo, caso esteja utilizando UI, modificar a seguinte parte:
+# IMPORTANTE: manter o arquivo da ui na mesma pasta do arquivo_principal.py
+
+a = Analysis(
+    ...
+    datas=[("nome_file_ui.ui",".")],
+    ...
+
+#Feito isso, executar o comando do Pyinstaller
+>> pyinstaller main.spec
+
+# Isto irá gerar duas pastas, uma Dist e uma Build.
+# O executavel estará na pasta Dist. Basta copia-lo e executa-lo onde quiser (windows)
+
+        #se quiser rodar no linux, criar requirements.txt 
+        pip freeze > requirements.txt 
+
+        #e rodar na maquina linux o camando
+        pip install -r requirements.txt
+
+        #abrir pasta e rodar:
+        python main.py
+
