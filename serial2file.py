@@ -61,7 +61,6 @@ class ReadSerial(threading.Thread):
             else:
                 self.txt_error = ""
             if (resp > 0): 
-                print(self.receiving_flag)
                 self.receiving_flag = True  
                 self.byte_size = resp              
                 while(not '\n' in data_str):     
