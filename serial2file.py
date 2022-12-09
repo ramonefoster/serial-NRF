@@ -73,20 +73,33 @@ class ReadSerial(threading.Thread):
                     else:
                         self.txt_error = ""
                 x = data_str.split("\t")
-                if self.control_var != x[3:8] and len(x)>3:
-                    self.control_var = x[3:8]
+                if self.control_var != x[0:5]:
+                    self.control_var = x[0:5]
+                    datevalue = datetime.date.today()
                     hours = datetime.datetime.now().strftime("%H")
                     minute = datetime.datetime.now().strftime("%M")
-                    seconds = datetime.datetime.now().strftime("%S")
-                    time_log = str(hours) + ":" + str(minute) + ":" + str(seconds)
-                    if x[3]=="1":
-                        status=" [Abrindo] "
-                    elif x[4]=="1":
-                        status=" [Fechando] "
-                    else:
-                        status=""
+                    seconds = datetime.datetime.now().strftime("%S")                
+                    time_log = str(datevalue) + "\t"+ str(hours) + ":" + str(minute) + ":" + str(seconds)
                     with open(self.port_name+'_LOG.txt', 'a+') as datafile:
-                        datafile.write(time_log+status+' - '+data_str)
+                        text = ""
+                        for bit in x[0:5]:
+                            text += bit + "\t"
+                        wegStatus = ""
+                        if (x[2]!="0" and x[2]!="1"):
+                            wegStatus = "ERROR"
+                        if (x[3]!="0" and x[3]!="1"):
+                            wegStatus = "ERROR"
+                        if (x[4]!="0" and x[4]!="1"):
+                            wegStatus = "ERROR"
+
+                        if x[0] == "1": 
+                            wegStatus = "Abrindo"
+                        if x[1] == "1": 
+                            wegStatus = "Fechando"
+                        datafile.write(time_log+'\t'+text+wegStatus+'\r')
+                    
+                    with open(self.port_name+'_LOG_FULLDATA.txt', 'a+') as datafile:
+                        datafile.write(time_log+'\t'+data_str)
             else:
                 self.receiving_flag = False
                 self.byte_size = 0
