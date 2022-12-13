@@ -3,6 +3,7 @@ import serial.tools.list_ports
 import threading
 import datetime
 import time
+from .savedb import SaveToDataBase
 
 class ReadSerial(threading.Thread):
     def __init__(self, porta, baud):  
@@ -29,11 +30,14 @@ class ReadSerial(threading.Thread):
                 self.port_name = self.ser.name
             except Exception as e:
                 print(e)
+        #Inicia conexão com DB
+        # self.database = SaveToDataBase()
+        #Inicia Loop de leitura da porta COM e gravação dos dados
         self.t_thread = threading.Thread(target = self.read)
         self.t_thread.start()
     
     def start(self):
-        """Start threar que re em loop a COM"""
+        """Inicia thread que lê a COM constantemente"""
         if self.ser.is_open == False:
             try:
                 self.ser.open()
@@ -46,6 +50,7 @@ class ReadSerial(threading.Thread):
                 self.txt_error = ""    
     
     def read(self):
+        """Loop de leitura da serial e gravação em txt e banco de dados"""
         while (True):
             if self.close_var:
                 break
@@ -92,9 +97,9 @@ class ReadSerial(threading.Thread):
                             wegStatus = "ERROR"
 
                         if x[0] == "1": 
-                            wegStatus = "Abrindo"
+                            wegStatus = "ABRINDO"
                         if x[1] == "1": 
-                            wegStatus = "Fechando"
+                            wegStatus = "FECHANDO"
                         datafile.write(time_log+'\t'+text+wegStatus+'\r')
                     
                     with open(self.port_name+'_LOG_FULLDATA.txt', 'a+') as datafile:
@@ -118,4 +123,5 @@ class ReadSerial(threading.Thread):
         self.ser.close()        
         self.control_var = ""
         self.receiving_flag = False
+        # self.database.close_dbconnection()
 
